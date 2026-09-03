@@ -19,6 +19,7 @@
 # password generation
 # automatic copying to clipboard and automatic deletion after 2 minutes
 # random messages on generation
+# multi-platform support
 #
 # requirements:
 # pyperclip - clipboard handling
@@ -33,10 +34,16 @@
 
 import secrets
 import random # for "non critical" randomization
-import pyperclip
 import threading
 import sys
 import time
+import sys
+
+if sys.platform in ("win32", "linux", "darwin"):
+    import pyperclip
+else:
+    pyperclip = None
+    print_password = True
 
 # "I know the serious security advice, but I'm going to make it entertaining."
 # intentionally dramatic sentences giving security advice/telling jokes.
@@ -111,8 +118,18 @@ def copy_password(password):
 # message that displays after successful password generation
 def password_msg(password):
     typing("[XuX] Here's your password!\n")
-    copy_password(password)
-    typing("\033[0;92mPassword copied to clipboard, deleting in 2 minutes, make it quick!\033[0m")
+    if print_password == False:
+        print_option = input("would you like to print the password to the screen? (y/n): ")
+
+        if print_option == "y":
+            print(f"{password}")
+        elif print_option == "n":
+            copy_password(password)
+            typing("\033[0;92mPassword copied to clipboard, deleting in 2 minutes, make it quick!\033[0m")
+        else:
+            print("Invalid input.")
+    else:
+        print(f"{password}")
     typing(random.choice(random_sentences),) # proper usage of random.choice() use secrets.choice for anything sensitive! its always important to use the right library for the right job.
 
 # take and validate password length input
@@ -137,13 +154,24 @@ def get_password_length():
             print("\nWow, why'd you run it?")
             exit()
 
+def exit_message():
+    print("Goodbye.")
+    exit()
+
+def again():
+    answer = input("Do you want to generate another password? (y/n): ")
+    return answer == "y"
+
 # beginning of program
 def start():
-    # execute functions in order of print_intro() > get_password_length() > generate_password() > password_msg()
+    # execute functions in order of print_intro() > get_password_length() > generate_password() > password_msg() > again()
     print_intro()
-    char_count = get_password_length()
-    password = generate_password(char_count)
-    password_msg(password)
+    while True:
+        char_count = get_password_length()
+        password = generate_password(char_count)
+        password_msg(password)
+        if not again():
+            exit_message()
 
 if __name__ == "__main__":
     start()
