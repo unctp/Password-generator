@@ -1,37 +1,74 @@
 # _/\/\/\/\/\_
 # | -      - |
 # \___-___-__/
-# 100% man made code!
-# 0% AI slop!
+#
+# author: zero___/pira8
+# my site: https://noname.pira8.workers.dev/
+# license: MIT
+# 
+# Dear future me, never forget the day you wrote this script. 8/2/26 
+#
+# "Yes, I KNOW I used too many comments. The source code is part of the experience."
+# "I could've done it the boring way, but where's the fun in that?"
+# "Yes, I know I could've make this three lines."
+# context for people who aren't interested in cybersecurity, "John rips through these!", john was referring to John The Ripper, a password cracking utility, "these" was referring to passwords themselves.
+# I enjoyed this project.
+# feature list:
+# animated text
+# ansi codes
+# password generation
+# automatic copying to clipboard and automatic deletion after 2 minutes
+# random messages on generation
+#
+# requirements:
+# pyperclip - clipboard handling
+# threading - timers
+# and eventually: flask - web UI
+#
+# Minimal exposure model, password is copied to clipboard directly and never printed to the screen.
+#
+# I'll probably make a web UI using flask for this later
+# enjoy!
+# 
 
 import secrets
-import random
+import random # for "non critical" randomization
 import pyperclip
 import threading
+import sys
+import time
 
+# "I know the serious security advice, but I'm going to make it entertaining."
 # intentionally dramatic sentences giving security advice/telling jokes.
 random_sentences = [
-    "Don't share it!",
-    ". . .it's a secret!",
-    "A shiny new password!",
-    "I bet you can't crack it!",
-    "Save it to a password manager!",
-    "Use 2FA!",
-    "John rips through these!",
-    "Be careful!",
-    "Perfect for encrypted files!",
-    "Don't trust anyone with it!",
-    "Write it down!",
-    "This is as strong as a brick wall!",
-    "Try to guess this!",
-    "Never give it to anyone, even if they say they're from a service you use.",
-    "You should be the only one with it!",
-    "This should definitely stay private!",
-    "Don't get phished!",
-    "This is uncrackable! At least for now. *cough* Quantum computing."
+    "\nDon't share it!\n",
+    "\n. . .it's a secret!\n",
+    "\nA shiny new password!\n",
+    "\nI bet you can't crack it!\n",
+    "\nSave it to a password manager!\n",
+    "\nUse 2FA!\n",
+    "\nJohn rips through these!\n",
+    "\nBe careful!\n",
+    "\nPerfect for encrypted files!\n",
+    "\nDon't trust anyone with it!\n",
+    "\nWrite it down!\n",
+    "\nThis is as strong as a brick wall!\n",
+    "\nTry to guess this!\n",
+    "\nNever give it to anyone, even if they say they're from a service you use.\n",
+    "\nYou should be the only one with it!\n",
+    "\nThis should definitely stay private!\n",
+    "\nDon't get phished!\n",
+    "\nThis is uncrackable! At least for now. *cough* Quantum computing.\n",
+    "\nDon't let Big Brother see it!\n",
+    "\nHopefully this isn't generated for a platform that gives your data to data brokers...\n",
+    "\nDon't fall for a hacker's favorite sport.\n",
+    "\nI haven't been here the whole time. I ran-some-ware!\n"
+    "\nOh boy, it would definitely suck if it was cracked by a hydra.\n"
 ]
 
+# "Why did the password lack confidence? It was insecure."
 def generate_password(char_count):
+    # the characters being used for password generation that secrets.choice picks securely
     char_string = (
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         "abcdefghijklmnopqrstuvwxyz"
@@ -43,24 +80,42 @@ def generate_password(char_count):
         for _ in range(char_count)
     )
 
-def print_intro():
-    print("\033[0;92m-__________________________________________________-")
-    print("|  brought to you by: zero____                     |")
-    print("|    Password generator (\033[31mcryptographically secure\033[0;92m) |")
-    print("-__________________________________________________-\033[0m")
+# a simple typing animation
+def typing(text):
+    for character in text:
+        sys.stdout.write(character)
+        sys.stdout.flush()
+        time.sleep(0.05)
 
+def print_intro():
+    typing("\033[0;92m-__________________________________________________-\n")
+    typing("|  brought to you by: zero____                     |\n")
+    typing("|  Password generator (\033[31mUses a CSPRNG\033[0;92m)              |\n")
+    print("-__________________________________________________-\033[0m\n")
+
+# clipboard handling
 def copy_password(password):
     pyperclip.copy(password)
-    timer = threading.Timer(120, pyperclip.copy, args=("",))
 
+    def clear_clipboard():
+        try:
+            if pyperclip.paste() == password:
+                pyperclip.copy("")
+        except Exception:
+            pass
+
+    timer = threading.Timer(120, clear_clipboard)
+    timer.daemon = True
     timer.start()
 
+# message that displays after successful password generation
 def password_msg(password):
-    print("[XuX] Here's your password!")
+    typing("[XuX] Here's your password!\n")
     copy_password(password)
-    print("Password copied to clipboard, deleting in 2 minutes, make it quick!")
-    print(random.choice(random_sentences))
+    typing("\033[0;92mPassword copied to clipboard, deleting in 2 minutes, make it quick!\033[0m")
+    typing(random.choice(random_sentences),) # proper usage of random.choice() use secrets.choice for anything sensitive! its always important to use the right library for the right job.
 
+# take and validate password length input
 def get_password_length():
     while True:
         try:
@@ -78,8 +133,13 @@ def get_password_length():
 
         except ValueError:
             print("Excuse me? Is that a joke? Please enter a whole number.")
+        except KeyboardInterrupt:
+            print("\nWow, why'd you run it?")
+            exit()
 
+# beginning of program
 def start():
+    # execute functions in order of print_intro() > get_password_length() > generate_password() > password_msg()
     print_intro()
     char_count = get_password_length()
     password = generate_password(char_count)
