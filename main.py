@@ -37,7 +37,6 @@ import random # for "non critical" randomization
 import threading
 import sys
 import time
-import sys
 
 if sys.platform in ("win32", "linux", "darwin"):
     import pyperclip
@@ -118,7 +117,7 @@ def copy_password(password):
 # message that displays after successful password generation
 def password_msg(password):
     typing("[XuX] Here's your password!\n")
-    if print_password == False:
+    if not print_password:
         print_option = input("would you like to print the password to the screen? (y/n): ")
 
         if print_option == "y":
